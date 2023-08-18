@@ -43,7 +43,7 @@ app.post('/updateTodo', async (req, res) => {
 app.post('/deleteTodo', async (req, res) => {
     let todo = req.body
 
-    await TodoModels.findByIdAndDelete(todo._id)
+    await TodoModels.findByIdAndUpdate(todo._id, { status: "unActive" })
 
     res.send("Todo Deleted")
 })
