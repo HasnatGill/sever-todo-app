@@ -53,6 +53,3 @@ const PROT = 8000
 app.listen(PROT, () => {
     console.log("Sever runing on Port :", PROT)
 })
-
-
-
