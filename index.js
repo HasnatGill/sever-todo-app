@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require('cors')
 const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 const app = express()
 
 // Connect the Sever With Backend
@@ -9,6 +11,7 @@ mongoose.connect(mongo_URL)
 
 // Improt the Models form another folder
 const TodoModels = require('./models/Todos')
+const UsersModels = require('./models/Users')
 
 app.use(cors())
 app.use(express.json())
@@ -45,6 +48,55 @@ app.post('/deleteTodo', async (req, res) => {
     let todo = req.body
     await TodoModels.findByIdAndUpdate(todo._id, { status: "unActive" })
     res.send("Todo Deleted")
+})
+
+// Create the Post request for register user...
+
+app.post('/register', async (req, res) => {
+    try {
+        let { email, userName, password, uid } = req.body;
+
+        const existEmail = await UsersModels.findOne({ email: email });
+        const newPassword = await bcrypt.hash(password, 10)
+
+        const user = { email, userName, password: newPassword, uid };
+
+        if (existEmail) {
+            res.status(500).json('This email is already exists');
+        } else {
+            const newUser = await UsersModels(user);
+            const token = jwt.sign(
+                {
+                    name: user.userName,
+                    email: user.email,
+                },
+                'secret123'
+            )
+
+            res.json({ token, uid });
+            await newUser.save();
+        }
+    } catch (error) {
+        res.status(404).json('Invalid Credentials');
+        console.log(error);
+    }
+})
+
+app.post('/login', async (req, res) => {
+    try {
+        const user = await UsersModels.findOne({ email: req.body.email, });
+        const isPasswordValid = await bcrypt.compare(req.body.password, user.password)
+
+        const token = jwt.sign({ email: user.email, }, 'secret123')
+
+        if (isPasswordValid === true && user) {
+            res.json({ token, uid: user.uid });
+        } else {
+            res.status(404).json({ message: 'Please enter your correct email & password' });
+        }
+    } catch (error) {
+        res.status(404).json({ message: 'Please enter your correct email & password' });
+    }
 })
 
 const PROT = 8000
