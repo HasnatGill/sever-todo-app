@@ -22,7 +22,7 @@ app.post('/createTodo', async (req, res) => {
     let todo = req.body
     const newTodo = TodoModels(todo)
     await newTodo.save()
-    res.json(todo)
+    res.json({massage:"Todo Successfully Add.."})
 })
 
 // Create the Get request for read the Todo...
@@ -39,7 +39,7 @@ app.post('/updateTodo', async (req, res) => {
     let data = { ...upTodo }
     delete data._id
     await TodoModels.findByIdAndUpdate(upTodo._id, data)
-    res.send("Todo Update")
+    res.send("Todo Successfully Update..")
 })
 
 // Create the Get request for Detele the Todo...
@@ -47,7 +47,7 @@ app.post('/updateTodo', async (req, res) => {
 app.post('/deleteTodo', async (req, res) => {
     let todo = req.body
     await TodoModels.findByIdAndUpdate(todo._id, { status: "unActive" })
-    res.send("Todo Deleted")
+    res.send("Todo Successfully Deleted..")
 })
 
 // Create the Post request for register user...
@@ -55,12 +55,12 @@ app.post('/deleteTodo', async (req, res) => {
 app.post('/register', async (req, res) => {
     try {
         let { email, userName, password, uid } = req.body;
-
+        
         const existEmail = await UsersModels.findOne({ email: email });
         const newPassword = await bcrypt.hash(password, 10)
-
+        
         const user = { email, userName, password: newPassword, uid };
-
+        
         if (existEmail) {
             res.status(500).json('This email is already exists');
         } else {
@@ -71,33 +71,37 @@ app.post('/register', async (req, res) => {
                     email: user.email,
                 },
                 'secret123'
-            )
-
-            res.json({ token, uid });
-            await newUser.save();
+                )
+                
+                res.json({ token, uid });
+                await newUser.save();
+            }
+        } catch (error) {
+            res.status(404).json('Invalid Credentials');
+            console.log(error);
         }
-    } catch (error) {
-        res.status(404).json('Invalid Credentials');
-        console.log(error);
-    }
-})
+    })
 
-app.post('/login', async (req, res) => {
-    try {
-        const user = await UsersModels.findOne({ email: req.body.email, });
-        const isPasswordValid = await bcrypt.compare(req.body.password, user.password)
-
-        const token = jwt.sign({ email: user.email, }, 'secret123')
-
-        if (isPasswordValid === true && user) {
-            res.json({ token, uid: user.uid });
-        } else {
-            res.status(404).json({ message: 'Please enter your correct email & password' });
-        }
-    } catch (error) {
+    // Create the Post request for login user...
+    
+    app.post('/login', async (req, res) => {
+        try {
+            const user = await UsersModels.findOne({ email: req.body.email, });
+            const isPasswordValid = await bcrypt.compare(req.body.password, user.password)
+            
+            const token = jwt.sign({ email: user.email, }, 'secret123')
+            
+            if (isPasswordValid === true && user) {
+                res.json({ token, uid: user.uid });
+            } else {
+                res.status(404).json({ message: 'Please enter your correct email & password' });
+            }
+        } catch (error) {
         res.status(404).json({ message: 'Please enter your correct email & password' });
     }
 })
+
+// Create the Post request for read user...
 
 app.get('/readUsers', async (req, res) => {
     const users = await UsersModels.find()
