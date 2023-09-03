@@ -17,6 +17,18 @@ const TodoSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    createdBy: {
+        type: Object,
+        required: true,
+        email: {
+            type: String,
+            required: true
+        },
+        uid: {
+            type: String,
+            required: true
+        }
+    }
 })
 
 const TodoModels = mongoose.model('todos', TodoSchema)

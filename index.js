@@ -99,6 +99,11 @@ app.post('/login', async (req, res) => {
     }
 })
 
+app.get('/readUsers', async (req, res) => {
+    const users = await UsersModels.find()
+    res.send(users)
+})
+
 const PROT = 8000
 
 app.listen(PROT, () => {
